@@ -1,0 +1,43 @@
+[
+  {
+    "probe": "partial_subscription",
+    "reconciliations": 3,
+    "creations": 1,
+    "disposals": 0
+  },
+  {
+    "probe": "interrupted_subscription_retry",
+    "slowReadMs": 2500,
+    "actualRetryMs": 103.888,
+    "readsBeforeRetry": 0
+  },
+  {
+    "probe": "timeout_amplification",
+    "points": 8,
+    "physicalRequests": 1,
+    "requestSizes": [
+      8
+    ],
+    "resultingWindow": 8,
+    "bad": null,
+    "failureScope": "Block"
+  },
+  {
+    "probe": "s7_array_cancel",
+    "cancelAfterTelegram": 1,
+    "actualTelegrams": 3,
+    "cancellationObserved": false,
+    "returnedGood": true
+  },
+  {
+    "probe": "s7_array_transport_capacity_training",
+    "initialWindow": 64,
+    "resultingWindow": 32
+  },
+  {
+    "probe": "classic_bad_db_fanout",
+    "points": 8,
+    "physicalRequests": 15,
+    "bad": 8
+  }
+]

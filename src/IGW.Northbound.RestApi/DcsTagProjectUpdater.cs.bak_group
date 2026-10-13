@@ -1,0 +1,304 @@
+using IGW.Abstractions;
+using IGW.Core;
+
+namespace IGW.Northbound.RestApi;
+
+internal static class DcsTagProjectUpdater
+{
+    private sealed record CommunicationMapping(
+        string DriverId,
+        int DefaultPort,
+        string? Model = null,
+        string? SettingKey = null,
+        string? SettingValue = null);
+
+    private sealed record ValidatedItem(
+        DcsTagUpdateModel Source,
+        CommunicationMapping Communication,
+        TagDef Definition,
+        string LogicalDevice,
+        string Endpoint);
+
+    public static bool TryBuild(
+        IgwProject current,
+        IReadOnlyList<DcsTagUpdateModel>? items,
+        out IgwProject updated,
+        out string error)
+    {
+        if (items is not { Count: > 0 })
+        {
+            updated = current;
+            error = "请输入点位！";
+            return false;
+        }
+
+        var validated = new List<ValidatedItem>(items.Count);
+        for (int index = 0; index < items.Count; index++)
+        {
+            DcsTagUpdateModel? item = items[index];
+            if (item is null)
+            {
+                updated = current;
+                error = $"索引 {index} 的点位为空";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(item.Ip))
+            {
+                updated = current;
+                error = $"索引 {index} 的 IP 不能为空";
+                return false;
+            }
+            if (item.Port is < 0 or > 65535)
+            {
+                updated = current;
+                error = $"索引 {index} 的端口超出范围";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(item.DbAddress))
+            {
+                updated = current;
+                error = $"索引 {index} 的 PLC 地址不能为空";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(item.TagName))
+            {
+                updated = current;
+                error = $"索引 {index} 的点位名称不能为空";
+                return false;
+            }
+            if (!TryMapCommunication(item.CommunicationType, out var communication, out error))
+            {
+                updated = current;
+                error = $"索引 {index}:{error}";
+                return false;
+            }
+            if (!DcsTagValueConverter.TryMapDefinition(item.DataType, out TagDef definition, out error))
+            {
+                updated = current;
+                error = $"索引 {index}:{error}";
+                return false;
+            }
+            if (definition.IsArray && !TryApplyArrayDefinition(item, definition, out error))
+            {
+                updated = current;
+                error = $"索引 {index}:{error}";
+                return false;
+            }
+
+            string ip = item.Ip.Trim();
+            int port = item.Port == 0 ? communication.DefaultPort : item.Port;
+            string endpoint = item.CommunicationType switch
+            {
+                DcsCommunicationType.MemoryCache => "",
+                DcsCommunicationType.OpcUa => $"opc.tcp://{ip}:{port}",
+                _ => $"{ip}:{port}",
+            };
+            validated.Add(new ValidatedItem(
+                item,
+                communication,
+                definition,
+                $"{item.CommunicationType}_{ip}",
+                endpoint));
+        }
+
+        try
+        {
+            IgwProject clone = ProjectStore.Clone(current);
+            foreach (ValidatedItem item in validated)
+            {
+                ChannelDef channel = FindOrCreateChannel(clone, item);
+                DeviceDef device = FindOrCreateDevice(channel, item);
+                if (!TryAddOrUpdateTag(device, item, out error))
+                {
+                    updated = current;
+                    return false;
+                }
+            }
+            ProjectStore.Validate(clone);
+            updated = clone;
+            error = "";
+            return true;
+        }
+        catch (Exception ex) when (ex is InvalidDataException or InvalidOperationException)
+        {
+            updated = current;
+            error = $"工程配置校验失败:{ex.Message}";
+            return false;
+        }
+    }
+
+    private static ChannelDef FindOrCreateChannel(IgwProject project, ValidatedItem item)
+    {
+        ChannelDef? channel = project.Channels.FirstOrDefault(candidate =>
+            candidate.DriverId.Equals(item.Communication.DriverId, StringComparison.OrdinalIgnoreCase)
+            && candidate.Devices.Any(IsDcsManaged));
+        channel ??= project.Channels.FirstOrDefault(candidate =>
+            candidate.Name.Equals("通用", StringComparison.OrdinalIgnoreCase)
+            && candidate.DriverId.Equals(item.Communication.DriverId, StringComparison.OrdinalIgnoreCase));
+        if (channel is not null) return channel;
+
+        string preferred = project.Channels.All(candidate => !candidate.Name.Equals("通用", StringComparison.OrdinalIgnoreCase))
+            ? "通用"
+            : $"通用_{item.Source.CommunicationType}";
+        string name = UniqueChannelName(project, preferred, item.Communication.DriverId);
+        channel = new ChannelDef
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Name = name,
+            DriverId = item.Communication.DriverId,
+        };
+        project.Channels.Add(channel);
+        return channel;
+    }
+
+    private static DeviceDef FindOrCreateDevice(ChannelDef channel, ValidatedItem item)
+    {
+        DeviceDef? device = channel.Devices.FirstOrDefault(candidate =>
+            candidate.Settings.TryGetValue(DcsTagMetadata.LogicalDevice, out string? logical)
+            && logical.Equals(item.LogicalDevice, StringComparison.OrdinalIgnoreCase));
+        if (device is null)
+        {
+            device = new DeviceDef
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Name = item.LogicalDevice,
+            };
+            channel.Devices.Add(device);
+        }
+
+        device.Endpoint = item.Endpoint;
+        device.Settings[DcsTagMetadata.LogicalDevice] = item.LogicalDevice;
+        device.Settings[DcsTagMetadata.CommunicationType] = item.Source.CommunicationType.ToString();
+        if (item.Communication.Model is not null) device.Settings["model"] = item.Communication.Model;
+        if (item.Communication.SettingKey is not null)
+            device.Settings[item.Communication.SettingKey] = item.Communication.SettingValue ?? "";
+        return device;
+    }
+
+    private static bool TryAddOrUpdateTag(DeviceDef device, ValidatedItem item, out string error)
+    {
+        List<TagDef> all = EnumerateTags(device).ToList();
+        TagDef? byAddress = all.FirstOrDefault(tag =>
+            tag.Address.Equals(item.Source.DbAddress.Trim(), StringComparison.OrdinalIgnoreCase));
+        TagDef? byName = all.FirstOrDefault(tag =>
+            tag.Name.Equals(item.Source.TagName.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (byAddress is not null && byName is not null && !ReferenceEquals(byAddress, byName))
+        {
+            error = $"点位名称和 PLC 地址分别匹配到不同点位，存在冲突:{item.Source.TagName}/{item.Source.DbAddress}";
+            return false;
+        }
+
+        TagDef tag = byAddress ?? byName ?? new TagDef { Id = Guid.NewGuid().ToString("N") };
+        if (byAddress is null && byName is null) device.Tags.Add(tag);
+        tag.Name = item.Source.TagName.Trim();
+        tag.Address = item.Source.DbAddress.Trim();
+        tag.DataType = item.Definition.DataType;
+        tag.IsArray = item.Definition.IsArray;
+        tag.Array = item.Definition.Array;
+        tag.Access = TagAccess.ReadWrite;
+        tag.ScanRateMs = 100;
+        tag.Metadata = new Dictionary<string, string>(item.Definition.Metadata!, StringComparer.OrdinalIgnoreCase);
+        error = "";
+        return true;
+    }
+
+    private static bool TryApplyArrayDefinition(DcsTagUpdateModel source, TagDef definition, out string error)
+    {
+        if (source.Dimensions is not { Length: > 0 })
+        {
+            error = "数组维度 Dimensions 不能为空；绝对地址协议无法从单个地址推断数组长度";
+            return false;
+        }
+        if (source.Dimensions.Any(static dimension => dimension <= 0))
+        {
+            error = "数组维度必须全部大于零";
+            return false;
+        }
+
+        int[] lowerBounds = source.LowerBounds is { Length: > 0 }
+            ? source.LowerBounds.ToArray()
+            : new int[source.Dimensions.Length];
+        if (lowerBounds.Length != source.Dimensions.Length)
+        {
+            error = "数组维度与下界数量不一致";
+            return false;
+        }
+
+        definition.Array = new ArrayDef
+        {
+            ElementType = definition.DataType,
+            Dimensions = source.Dimensions.ToArray(),
+            LowerBounds = lowerBounds,
+            ElementStrideBytes = source.ElementStrideBytes ?? 0,
+            ElementStrideBits = source.ElementStrideBits ?? 0,
+            StringLength = source.StringLength,
+            Struct = source.Struct,
+            SourceShape = "DCS AddTags",
+        };
+        error = "";
+        return true;
+    }
+
+    private static IEnumerable<TagDef> EnumerateTags(DeviceDef device)
+    {
+        foreach (TagDef tag in device.Tags) yield return tag;
+        foreach (TagDef tag in EnumerateGroups(device.Groups)) yield return tag;
+    }
+
+    private static IEnumerable<TagDef> EnumerateGroups(IEnumerable<TagGroupDef> groups)
+    {
+        foreach (TagGroupDef group in groups)
+        {
+            foreach (TagDef tag in group.Tags) yield return tag;
+            foreach (TagDef tag in EnumerateGroups(group.SubGroups)) yield return tag;
+        }
+    }
+
+    private static bool IsDcsManaged(DeviceDef device) =>
+        device.Settings.ContainsKey(DcsTagMetadata.LogicalDevice);
+
+    private static string UniqueChannelName(IgwProject project, string preferred, string driverId)
+    {
+        ChannelDef? existing = project.Channels.FirstOrDefault(channel =>
+            channel.Name.Equals(preferred, StringComparison.OrdinalIgnoreCase));
+        if (existing is null || existing.DriverId.Equals(driverId, StringComparison.OrdinalIgnoreCase)) return preferred;
+        for (int suffix = 2; ; suffix++)
+        {
+            string candidate = $"{preferred}_{suffix}";
+            if (project.Channels.All(channel => !channel.Name.Equals(candidate, StringComparison.OrdinalIgnoreCase)))
+                return candidate;
+        }
+    }
+
+    private static bool TryMapCommunication(
+        DcsCommunicationType type, out CommunicationMapping mapping, out string error)
+    {
+        mapping = type switch
+        {
+            DcsCommunicationType.OpcUa => new("OpcUa.Client", 4840),
+            DcsCommunicationType.S1200 => new("Siemens.S7", 102, "S7-1200"),
+            DcsCommunicationType.S300 => new("Siemens.S7", 102, "S7-300"),
+            DcsCommunicationType.S400 => new("Siemens.S7", 102, "S7-400"),
+            DcsCommunicationType.S1500 => new("Siemens.S7", 102, "S7-1500"),
+            DcsCommunicationType.S200Smart => new("Siemens.S7", 102, "S7-200Smart"),
+            DcsCommunicationType.S200 => new("Siemens.S7", 102, "S7-200"),
+            DcsCommunicationType.FX5U => new("Mitsubishi.Mc", 6000, SettingKey: "mcVersion", SettingValue: "Qna_3E"),
+            DcsCommunicationType.Omr_NJ => new("Omron.Cip", 44818, SettingKey: "path", SettingValue: ""),
+            DcsCommunicationType.Omr_Fins => new("Omron.Fins", 9600),
+            DcsCommunicationType.MemoryCache => new("Simulator", 0),
+            _ => new("", 0),
+        };
+        if (type == DcsCommunicationType.Inovance_H5U)
+        {
+            error = "暂不支持 Inovance_H5U 通讯类型";
+            return false;
+        }
+        if (mapping.DriverId.Length == 0)
+        {
+            error = $"暂不支持的通讯类型:{type}";
+            return false;
+        }
+        error = "";
+        return true;
+    }
+}

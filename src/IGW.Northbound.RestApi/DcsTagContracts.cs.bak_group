@@ -1,0 +1,96 @@
+using System.Text.Json;
+using IGW.Abstractions;
+
+namespace IGW.Northbound.RestApi;
+
+internal enum DcsCommunicationType
+{
+    None = -1,
+    OpcUa = 0,
+    S1200 = 1,
+    S300 = 2,
+    S400 = 3,
+    S1500 = 4,
+    S200Smart = 5,
+    S200 = 6,
+    FX5U = 7,
+    Inovance_H5U = 8,
+    Omr_NJ = 9,
+    Omr_Fins = 10,
+    MemoryCache = 11,
+}
+
+internal enum DcsTagDataType
+{
+    None = -1,
+    String = 0,
+    Boolean = 1,
+    Char = 2,
+    Byte = 3,
+    Short = 4,
+    Word = 5,
+    Long = 6,
+    DWord = 7,
+    Float = 8,
+    Double = 9,
+    Date = 12,
+    StringArray = 20,
+    BooleanArray = 21,
+    ByteArray = 23,
+    ShortArray = 24,
+    WordArray = 25,
+    LongArray = 26,
+    DWordArray = 27,
+    FloatArray = 28,
+}
+
+internal sealed record DcsReadTagRequest(string Tag);
+internal sealed record DcsTagValue(string Key, JsonElement Value);
+internal sealed record DcsKeyValue<T>(string Key, T? Value);
+internal sealed record DcsWriteTagRequest(DcsTagValue Tag);
+internal sealed record DcsWriteTagsRequest(List<DcsTagValue> Tags);
+
+internal sealed record DcsTagUpdateModel
+{
+    public string Ip { get; set; } = "";
+    public int Port { get; set; }
+    public DcsCommunicationType CommunicationType { get; set; }
+    public string DbAddress { get; set; } = "";
+    public DcsTagDataType DataType { get; set; }
+    public string TagName { get; set; } = "";
+    public int[]? Dimensions { get; set; }
+    public int[]? LowerBounds { get; set; }
+    public int? ElementStrideBytes { get; set; }
+    public int? ElementStrideBits { get; set; }
+    public int? StringLength { get; set; }
+    public StructDef? Struct { get; set; }
+}
+
+internal sealed record DcsResponse<T>(
+    int HttpStatusCode,
+    bool IsSuccess,
+    T? BackResult,
+    string? ErrorMessage,
+    string? ExceptionMessage)
+{
+    public static DcsResponse<T> Success(T? value, int status = 200) =>
+        new(status, true, value, null, null);
+
+    public static DcsResponse<T> Failure(string error, int status = 200, string? exception = null) =>
+        new(status, false, default, error, exception);
+}
+
+internal static class DcsJson
+{
+    public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+}
+
+internal static class DcsTagMetadata
+{
+    public const string DataType = "dcsDataType";
+    public const string LogicalDevice = "dcsLogicalDevice";
+    public const string CommunicationType = "dcsCommunicationType";
+}

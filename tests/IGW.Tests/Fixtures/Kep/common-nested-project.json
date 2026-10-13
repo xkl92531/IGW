@@ -1,0 +1,56 @@
+{
+  "project": {
+    "common.ALLTYPES_NAME": "Factory",
+    "servermain.PROJECT_UNKNOWN": "keep-project",
+    "channels": [
+      {
+        "common.ALLTYPES_NAME": "PLC8",
+        "common.ALLTYPES_DESCRIPTION": "Line 8",
+        "servermain.MULTIPLE_TYPES_DEVICE_DRIVER": "Simulator",
+        "servermain.CHANNEL_UNKNOWN": 17,
+        "devices": [
+          {
+            "common.ALLTYPES_NAME": "CPU",
+            "common.ALLTYPES_DESCRIPTION": "Main CPU",
+            "servermain.DEVICE_ID_STRING": "127.0.0.1",
+            "servermain.DEVICE_UNKNOWN": true,
+            "tags": [
+              {
+                "common.ALLTYPES_NAME": "Direct",
+                "common.ALLTYPES_DESCRIPTION": "Direct point",
+                "servermain.TAG_ADDRESS": "R0001",
+                "servermain.TAG_DATA_TYPE": 4,
+                "servermain.TAG_READ_WRITE_ACCESS": 1,
+                "servermain.TAG_SCAN_RATE_MILLISECONDS": 250,
+                "servermain.TAG_UNKNOWN": { "mode": "native" }
+              }
+            ],
+            "tag_groups": [
+              {
+                "common.ALLTYPES_NAME": "Area",
+                "common.ALLTYPES_DESCRIPTION": "Area group",
+                "servermain.GROUP_UNKNOWN": "keep-group",
+                "tags": [],
+                "tag_groups": [
+                  {
+                    "common.ALLTYPES_NAME": "Nested",
+                    "tags": [
+                      {
+                        "common.ALLTYPES_NAME": "Value",
+                        "servermain.TAG_ADDRESS": "R0002",
+                        "servermain.TAG_DATA_TYPE": 21,
+                        "servermain.TAG_READ_WRITE_ACCESS": 0,
+                        "servermain.TAG_SCAN_RATE_MILLISECONDS": 100
+                      }
+                    ],
+                    "tag_groups": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

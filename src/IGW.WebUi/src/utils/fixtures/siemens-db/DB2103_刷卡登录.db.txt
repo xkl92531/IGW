@@ -1,0 +1,16 @@
+DATA_BLOCK "DB2103_刷卡登录"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      PLCFlag : Int;   // PLC标志位   1=等待MES响应，3=电气操作完成
+      MESFlag : Int;   // MES标志位  2=MES响应完成，4=流程结束
+      Account : Bool;   // 账号/卡号：类型-1时为员工工号；类型-2时为卡号；类型-3注销时为当前账号
+      Password : Bool;   // 密码：类型-1时必填（明文由远景校验）；类型-2/3不传
+      LoginType : Bool;   // 类型：1-账号密码校验 2-刷卡校验 3-注销
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK

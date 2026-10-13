@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\IGW.Abstractions\IGW.Abstractions.csproj" />
+    <ProjectReference Include="..\IGW.Core\IGW.Core.csproj" />
+    <ProjectReference Include="..\IGW.Northbound.Mes\IGW.Northbound.Mes.csproj" />
+    <ProjectReference Include="..\IGW.ProjectExchange\IGW.ProjectExchange.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IGW.Tests" />
+    <InternalsVisibleTo Include="IGW.ProjectStorage.Performance" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

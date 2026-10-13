@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-status}" in
+  status)
+    systemctl --no-pager --full status igw.service
+    ;;
+  restart)
+    systemctl restart igw.service
+    ;;
+  stop)
+    systemctl stop igw.service
+    ;;
+  start)
+    systemctl start igw.service
+    ;;
+  logs)
+    journalctl -u igw.service -n "${2:-200}" --no-pager
+    ;;
+  *)
+    echo "用法: igwctl {status|start|stop|restart|logs [行数]}" >&2
+    exit 2
+    ;;
+esac

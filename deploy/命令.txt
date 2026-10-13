@@ -1,0 +1,19 @@
+powershell中
+cd D:\AI\AIProject\IGW\deploy
+
+./package-docker.ps1
+
+libigw_s7plus.so打包到zip里面
+
+上传zip文件到/opt/hsjm-test/hsjm-igw
+
+cd /opt/hsjm-test/hsjm-igw
+
+docker stop igw
+docker rm igw
+
+unzip -o igw-1.6.59-docker-linux-x64.zip -d /opt/hsjm-test/hsjm-igw/
+
+cd igw-docker
+bash deploy.sh
+

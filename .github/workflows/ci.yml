@@ -1,0 +1,65 @@
+name: IGW release gate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/IGW.WebUi/pnpm-lock.yaml
+
+      - name: Install pnpm
+        run: npm install --global pnpm@10
+
+      - name: Restore .NET
+        run: dotnet restore IGW.slnx
+
+      - name: Release build
+        run: dotnet build IGW.slnx -c Release --no-restore /warnaserror
+
+      - name: Reject vulnerable transitive packages
+        shell: pwsh
+        run: |
+          $report = dotnet list IGW.slnx package --vulnerable --include-transitive
+          $report | Write-Host
+          if ($LASTEXITCODE -ne 0 -or ($report -join "`n") -match 'following vulnerable packages') {
+            throw 'Vulnerable NuGet package detected.'
+          }
+
+      - name: Frontend install
+        working-directory: src/IGW.WebUi
+        run: pnpm install --frozen-lockfile
+
+      - name: Frontend typecheck and tests
+        working-directory: src/IGW.WebUi
+        run: |
+          pnpm typecheck
+          pnpm test
+
+      - name: Frontend production build
+        working-directory: src/IGW.WebUi
+        run: pnpm build
+
+      # tests/ 是按仓库发布策略保留在厂商本机的私有验收资产，不进入公司 Git。
+      # CI 仍执行所有随产品源码提交的 Node/Vitest 回归；完整 .NET 与百万点压力验收在发包前本地执行。
+      - name: Product source regression tests
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem src,installer -Recurse -Filter '*.test.cjs' | ForEach-Object FullName)
+          if ($files.Count -eq 0) { throw 'No product regression tests found.' }
+          node --test $files

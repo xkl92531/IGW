@@ -1,0 +1,56 @@
+{
+  "partialSubscription": {
+    "requestedTags": 2,
+    "acceptedTags": 1,
+    "unchangedDemand": true,
+    "simulatedClockElapsedMs": 4200,
+    "rejectedTagPollingRounds": 3,
+    "acceptedTagPollingRounds": 0,
+    "createsBeforeStop": 1,
+    "disposalsBeforeStop": 0,
+    "healthySubscriptionRetained": true
+  },
+  "batchCompletion": {
+    "goodSamplePublished": true,
+    "goodRequestCompletedDuringRetry": true,
+    "laterDispatchedWhileRetryInFlight": false,
+    "inFlightRetryWasNotPreempted": true,
+    "failedPointStillRetryingWhenLaterCompleted": true,
+    "failedPointAttemptsAtObservation": 3,
+    "goodResult": "Good",
+    "mismatchResult": "BadNotVerified",
+    "laterResult": "Good",
+    "writeCounts": {
+      "Line.Plc.Mismatch": 11,
+      "Line.Plc.Later": 1,
+      "Line.Plc.Good": 1
+    }
+  },
+  "sharedReadPriority": {
+    "operations": [
+      "Line.Plc.CompletedWrite",
+      "Line.Plc.Busy1",
+      "Line.Plc.Busy2",
+      "Line.Plc.WriteReadback",
+      "Line.Plc.Background0",
+      "Line.Plc.Background1",
+      "Line.Plc.Background2",
+      "Line.Plc.Background3",
+      "Line.Plc.Background4",
+      "Line.Plc.Background5"
+    ],
+    "readbackWaitedForInFlightPermit": true,
+    "anInFlightReadRemainedBlocked": true,
+    "backgroundReadsDispatchedBeforeReadback": 0
+  },
+  "persistentReadTimeout": {
+    "requestedTags": 512,
+    "physicalReadAttempts": 1,
+    "initialRequestSizes": [
+      512
+    ],
+    "badSamples": 512,
+    "theoreticalSecondsIfEveryAttemptTakesConfiguredTenSecondTimeout": 10,
+    "note": "Timeouts are injected instantly; this is an attempt count, not measured PLC duration."
+  }
+}

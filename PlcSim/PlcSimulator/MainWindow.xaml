@@ -1,0 +1,143 @@
+<Window x:Class="PlcSimulator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="多协议 PLC 模拟器" Height="850" Width="1440" MinHeight="700" MinWidth="1120"
+        WindowStartupLocation="CenterScreen" FontFamily="Microsoft YaHei UI" FontSize="13" Background="#F4F7FB">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="12,6"/><Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#C9D4E3"/>
+        </Style>
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#1677FF"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#1677FF"/>
+        </Style>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderBrush" Value="#DCE4EF"/><Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12"/><Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="#DCE4EF" BorderThickness="0,0,0,1" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="34" Height="34" CornerRadius="8" Background="#E8F2FF" Margin="0,0,10,0">
+                        <TextBlock Text="PLC" Foreground="#1677FF" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Text="多协议 PLC 模拟器" FontSize="17" FontWeight="SemiBold" Foreground="#17233D"/>
+                        <TextBlock x:Name="ProjectSummaryText" Text="内置西门子示例 · 4 DB · 80 点" Foreground="#77869A" FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnImportDb" Content="导入 Siemens DB" Click="BtnImportDb_Click"/>
+                    <Button x:Name="BtnImportKep" Content="导入 KEP JSON" Click="BtnImportKep_Click"/>
+                    <Button x:Name="BtnStartAll" Content="启动全部协议" Style="{StaticResource PrimaryButton}" Click="BtnStartAll_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Height="160" Background="White" BorderBrush="#DCE4EF" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#FAFBFD" Margin="0,0,0,2">
+                    <TextBlock Text="通讯日志" FontWeight="Bold" VerticalAlignment="Center" Margin="12,6"/>
+                    <CheckBox x:Name="ChkLogRead" Content="记录读" IsChecked="False" VerticalAlignment="Center" Margin="12,0,0,0" Checked="LogFilter_Changed" Unchecked="LogFilter_Changed"/>
+                    <CheckBox x:Name="ChkLogWrite" Content="记录写" IsChecked="True" VerticalAlignment="Center" Margin="12,0,0,0" Checked="LogFilter_Changed" Unchecked="LogFilter_Changed"/>
+                    <CheckBox x:Name="ChkLogConnect" Content="记录连接" IsChecked="True" VerticalAlignment="Center" Margin="12,0,0,0" Checked="LogFilter_Changed" Unchecked="LogFilter_Changed"/>
+                    <Button Content="清空" Margin="12,3,0,3" Padding="10,2" Click="BtnClearLog_Click"/>
+                    <TextBlock Text="高频轮询时建议关闭读日志" Foreground="#8899AA" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                </StackPanel>
+                <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas" FontSize="12" BorderThickness="0" Background="White" TextWrapping="NoWrap"/>
+            </DockPanel>
+        </Border>
+
+        <Grid Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/><ColumnDefinition Width="8"/><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="330"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="设备与数据结构" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBlock Text="选择设备或组查看点位" Foreground="#8492A6" FontSize="12" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" x:Name="BtnDeleteTreeNode" Content="删除选中" Padding="8,3" Margin="6,0,0,0" VerticalAlignment="Center" Click="BtnDeleteTreeNode_Click"/>
+                    </Grid>
+                    <TreeView x:Name="DeviceTree" BorderThickness="0" Background="Transparent" SelectedItemChanged="DeviceTree_SelectedItemChanged" KeyDown="DeviceTree_KeyDown"/>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Margin="0">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="SelectionTitleText" Text="点位数据" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBlock x:Name="SelectionSummaryText" Text="写入后所有已启用协议立即共享" Foreground="#8492A6" FontSize="12" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" x:Name="ChkEnableWrite" Content="允许客户端写入" IsChecked="True" VerticalAlignment="Center" Checked="ChkEnableWrite_Changed" Unchecked="ChkEnableWrite_Changed"/>
+                    </Grid>
+                    <TabControl x:Name="TabDbs" BorderBrush="#E2E8F0"/>
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="ProtocolCards">
+                    <TextBlock Text="协议服务" FontWeight="SemiBold" FontSize="14" Margin="2,0,0,10"/>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid><TextBlock Text="Siemens S7" FontWeight="SemiBold"/><TextBlock x:Name="StatusText" Text="已停止" HorizontalAlignment="Right" Foreground="#7B8798"/></Grid>
+                            <TextBlock x:Name="DetectedSiemensProfileText" Text="自动识别：Classic S7" Foreground="#1677FF" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="DetectedSiemensEvidenceText" Text="内置非优化 DB · Rack 0 / Slot 1" Foreground="#8492A6" FontSize="12" Margin="0,2,0,10" TextWrapping="Wrap"/>
+                            <WrapPanel>
+                                <TextBlock x:Name="SiemensPortLabelText" Text="本机端口" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBox x:Name="PortBox" Width="62" Text="102" Padding="4" TextChanged="PortBox_TextChanged"/>
+                                <Button x:Name="BtnStart" Content="启动" Margin="6,0,0,0" Click="BtnStart_Click"/>
+                            </WrapPanel>
+                            <TextBlock x:Name="SiemensEndpointMapText" FontFamily="Consolas, Microsoft YaHei UI" FontSize="11"
+                                       Foreground="#607086" Margin="0,8,0,0" TextWrapping="Wrap" LineHeight="18"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#9AA7B5" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="OnlineText" Text="连接数 0" Foreground="#607086" Margin="6,0,0,0"/>
+                                <Button x:Name="BtnSelfTest" Content="本地自测" Padding="8,2" Margin="12,0,0,0" Click="BtnSelfTest_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid><TextBlock Text="OPC UA Server" FontWeight="SemiBold"/><TextBlock x:Name="OpcUaStatusText" Text="已停止" HorizontalAlignment="Right" Foreground="#7B8798"/></Grid>
+                            <TextBlock x:Name="OpcUaEndpointText" Text="opc.tcp://localhost:49320" Foreground="#1677FF" FontSize="12" Margin="0,4,0,9" TextWrapping="Wrap"/>
+                            <WrapPanel><TextBlock Text="端口" VerticalAlignment="Center" Margin="0,0,6,0"/><TextBox x:Name="OpcUaPortBox" Width="72" Text="49320" Padding="4"/><Button x:Name="BtnStartOpcUa" Content="启动 OPC UA" Margin="8,0,0,0" Click="BtnStartOpcUa_Click"/></WrapPanel>
+                            <WrapPanel Margin="0,8,0,0"><TextBlock Text="性能档位" VerticalAlignment="Center" Margin="0,0,6,0"/><TextBox x:Name="OpcUaProfileBox" Width="190" Text="*=1515" Padding="4" ToolTip="按 PLC(导入工程的通道名)指定：1515 / 1517 / none，如 PLC7=1517,*=1515"/></WrapPanel>
+                            <TextBlock Text="匿名连接 · 可浏览结构 · 支持读写 · 多 PLC 工程每台 PLC 一个端口" Foreground="#8492A6" FontSize="12" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid><TextBlock Text="Omron NJ/NX EtherNet/IP" FontWeight="SemiBold"/><TextBlock x:Name="OmronCipStatusText" Text="已停止" HorizontalAlignment="Right" Foreground="#7B8798"/></Grid>
+                            <TextBlock Text="CIP 符号变量，KEP JSON 导入后按设备启动" Foreground="#8492A6" FontSize="12" Margin="0,4,0,9" TextWrapping="Wrap"/>
+                            <WrapPanel><TextBlock Text="默认端口" VerticalAlignment="Center" Margin="0,0,6,0"/><TextBox x:Name="CipPortBox" Width="72" Text="44818" Padding="4"/><Button x:Name="BtnStartOmronCip" Content="启动 CIP" Margin="8,0,0,0" Click="BtnStartOmronCip_Click"/></WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid><TextBlock Text="Omron FINS TCP" FontWeight="SemiBold"/><TextBlock x:Name="OmronFinsStatusText" Text="已停止" HorizontalAlignment="Right" Foreground="#7B8798"/></Grid>
+                            <TextBlock Text="CJ/CS/CP 系列地址，支持 D/CIO/W/H/AR" Foreground="#8492A6" FontSize="12" Margin="0,4,0,9"/>
+                            <WrapPanel><TextBlock Text="默认端口" VerticalAlignment="Center" Margin="0,0,6,0"/><TextBox x:Name="FinsPortBox" Width="72" Text="9600" Padding="4"/><Button x:Name="BtnStartOmronFins" Content="启动 FINS" Margin="8,0,0,0" Click="BtnStartOmronFins_Click"/></WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

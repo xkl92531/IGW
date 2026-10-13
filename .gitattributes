@@ -1,0 +1,13 @@
+# Linux scripts and systemd units must keep LF endings.
+*.sh text eol=lf
+tools/linux/igwctl text eol=lf
+tools/linux/igw.service text eol=lf
+
+# Windows command scripts must keep CRLF endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Git hooks run in a POSIX shell.
+tools/githooks/* text eol=lf
+
+# Pinned OpenObserve release archives are kept in Git LFS for offline builds.

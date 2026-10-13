@@ -1,0 +1,14 @@
+DATA_BLOCK "DB2101_设备异常"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      PLCFlag : Int;   // PLC标志位   1=等待MES响应，3=电气操作完成
+      MESFlag : Int;   // MES标志位  2=MES响应完成，4=流程结束
+      ErrorMessage : String[100];   // NG原因(中文描述)
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK

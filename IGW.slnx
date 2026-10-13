@@ -1,0 +1,37 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/IGW.ProjectExchange.Performance/IGW.ProjectExchange.Performance.csproj" />
+    <Project Path="benchmarks/IGW.ProjectStorage.Performance/IGW.ProjectStorage.Performance.csproj" />
+    <Project Path="benchmarks/IGW.Realtime.Performance/IGW.Realtime.Performance.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/IGW.Abstractions/IGW.Abstractions.csproj" />
+    <Project Path="src/IGW.Core/IGW.Core.csproj" />
+    <Project Path="src/IGW.DbSetup/IGW.DbSetup.csproj" />
+    <Project Path="src/IGW.DataMover/IGW.DataMover.csproj" />
+    <Project Path="src/IGW.Drivers.EtherNetIP/IGW.Drivers.EtherNetIP.csproj" />
+    <Project Path="src/IGW.Drivers.IoTClient/IGW.Drivers.IoTClient.csproj" />
+    <Project Path="src/IGW.Drivers.Mitsubishi/IGW.Drivers.Mitsubishi.csproj" />
+    <Project Path="src/IGW.Drivers.Mqtt/IGW.Drivers.Mqtt.csproj" />
+    <Project Path="src/IGW.Drivers.OpcUaClient/IGW.Drivers.OpcUaClient.csproj" />
+    <Project Path="src/IGW.Drivers.Simulator/IGW.Drivers.Simulator.csproj" />
+    <Project Path="src/IGW.Licensing/IGW.Licensing.csproj" />
+    <Project Path="src/IGW.Northbound.Mqtt/IGW.Northbound.Mqtt.csproj" />
+    <Project Path="src/IGW.Northbound.Mes/IGW.Northbound.Mes.csproj" />
+    <Project Path="src/IGW.Northbound.OpcUaServer/IGW.Northbound.OpcUaServer.csproj" />
+    <Project Path="src/IGW.Northbound.RestApi/IGW.Northbound.RestApi.csproj" />
+    <Project Path="src/IGW.Observability/IGW.Observability.csproj" />
+    <Project Path="src/IGW.Persistence.Replication/IGW.Persistence.Replication.csproj" />
+    <Project Path="src/IGW.Persistence.Sqlite/IGW.Persistence.Sqlite.csproj" />
+    <Project Path="src/IGW.ProjectExchange/IGW.ProjectExchange.csproj" />
+    <Project Path="src/IGW.Runtime/IGW.Runtime.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IGW.Observability.Tests/IGW.Observability.Tests.csproj" />
+    <Project Path="tests/IGW.Tests/IGW.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/IGW.KepProjectProbe/IGW.KepProjectProbe.csproj" />
+    <Project Path="tools/IGW.OpcUaProbe/IGW.OpcUaProbe.csproj" />
+  </Folder>
+</Solution>

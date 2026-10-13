@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.9" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 数据迁移工具是 WinForms 程序(net10.0-windows)，测试只编译它不依赖界面的迁移核心 -->
+    <Compile Include="..\..\src\IGW.DataMover\DataDirectoryMover.cs" Link="DataMover\DataDirectoryMover.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\src\IGW.Abstractions\IGW.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Core\IGW.Core.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Drivers.OpcUaClient\IGW.Drivers.OpcUaClient.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Drivers.EtherNetIP\IGW.Drivers.EtherNetIP.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Drivers.Mqtt\IGW.Drivers.Mqtt.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Drivers.IoTClient\IGW.Drivers.IoTClient.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Drivers.Simulator\IGW.Drivers.Simulator.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Northbound.Mes\IGW.Northbound.Mes.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Northbound.RestApi\IGW.Northbound.RestApi.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Observability\IGW.Observability.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Persistence.Sqlite\IGW.Persistence.Sqlite.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Persistence.Replication\IGW.Persistence.Replication.csproj" />
+    <ProjectReference Include="..\..\src\IGW.ProjectExchange\IGW.ProjectExchange.csproj" />
+    <ProjectReference Include="..\..\src\IGW.Runtime\IGW.Runtime.csproj" />
+    <ProjectReference Include="..\..\tools\IGW.OpcUaProbe\IGW.OpcUaProbe.csproj" />
+    <ProjectReference Include="..\..\tools\IGW.KepProjectProbe\IGW.KepProjectProbe.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Fixtures\Kep\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

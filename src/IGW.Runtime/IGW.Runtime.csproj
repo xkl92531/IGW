@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\IGW.Abstractions\IGW.Abstractions.csproj" />
+    <ProjectReference Include="..\IGW.Core\IGW.Core.csproj" />
+    <ProjectReference Include="..\IGW.Persistence.Sqlite\IGW.Persistence.Sqlite.csproj" />
+    <ProjectReference Include="..\IGW.Persistence.Replication\IGW.Persistence.Replication.csproj" />
+    <ProjectReference Include="..\IGW.ProjectExchange\IGW.ProjectExchange.csproj" />
+    <ProjectReference Include="..\IGW.Drivers.IoTClient\IGW.Drivers.IoTClient.csproj" />
+    <ProjectReference Include="..\IGW.Drivers.Simulator\IGW.Drivers.Simulator.csproj" />
+    <ProjectReference Include="..\IGW.Northbound.RestApi\IGW.Northbound.RestApi.csproj" />
+    <ProjectReference Include="..\IGW.Northbound.OpcUaServer\IGW.Northbound.OpcUaServer.csproj" />
+    <ProjectReference Include="..\IGW.Northbound.Mqtt\IGW.Northbound.Mqtt.csproj" />
+    <ProjectReference Include="..\IGW.Northbound.Mes\IGW.Northbound.Mes.csproj" />
+    <ProjectReference Include="..\IGW.Observability\IGW.Observability.csproj" />
+    <ProjectReference Include="..\IGW.Licensing\IGW.Licensing.csproj" />
+    <ProjectReference Include="..\IGW.Drivers.OpcUaClient\IGW.Drivers.OpcUaClient.csproj" />
+    <ProjectReference Include="..\IGW.Drivers.EtherNetIP\IGW.Drivers.EtherNetIP.csproj" />
+    <ProjectReference Include="..\IGW.Drivers.Mitsubishi\IGW.Drivers.Mitsubishi.csproj" />
+    <ProjectReference Include="..\IGW.Drivers.Mqtt\IGW.Drivers.Mqtt.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentModbus" Version="5.3.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.9" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="IGW.Tests" />
+  </ItemGroup>
+
+  <!-- Vite 产物由 IGW.WebUi 写入本项目的 wwwroot；调试运行和安装发布都必须携带最新哈希资源。 -->
+  <ItemGroup>
+    <Content Update="wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 大对象堆碎片过多时让 GC 自动压缩(百万点工程保存/载入会留下大量大数组碎片)；保持服务器 GC。 -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="5" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.378.145" />
+    <ProjectReference Include="..\PlcSimulator\PlcSimulator.csproj" />
+    <Reference Include="HslCommunication">
+      <HintPath>..\PlcSimulator\libs\HslCommunication.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

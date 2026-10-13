@@ -1,0 +1,22 @@
+﻿# 原生库 libigw_s7plus.so / igw_s7plus.dll 必须导出的符号(当前 ABI v5)。
+#
+# 打包脚本按这份清单校验产物，不合格就拒绝出包。现场出过「只换网关、
+# 原生库还是几天前的」：网关兼容旧 ABI 不会报错，但旧库没有逐项坏点隔离
+# (一个解析不了的符号会把同一批点全拖成坏值)，也没有变化订阅导出——
+# 后者更阴，托管侧拿不到导出就静默回退轮询，不报错，日志上看不出来。
+#
+# 清单放这里而不是抄进各打包脚本，是因为抄了就会漂移：Windows 那条路
+# 就曾经漏掉校验，Linux/Docker 都在查、它不查，包照出不误。
+# 加新导出时改这一处，三个脚本一起生效。
+#
+# 读取方(改导出时确认它们都还在读这份清单)：
+#   deploy\build-s7plus-linux.ps1      交叉编译 .so 后自检
+#   deploy\package-docker.ps1          Docker 包组装时校验
+#   installer\test-publish-layout.ps1  Windows 安装包发布布局校验
+igw_s7plus_abi_version
+igw_s7plus_write_items
+igw_s7plus_take_resync_request
+igw_s7plus_subscribe
+igw_s7plus_poll_notification
+igw_s7plus_delete_subscription
+igw_s7plus_list_datablocks

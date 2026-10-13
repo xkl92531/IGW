@@ -1,0 +1,14 @@
+DATA_BLOCK "DB2102在线离线登录"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      PLCFlag : Int;   // PLC标志位   1=等待MES响应，3=电气操作完成
+      MESFlag : Int;   // MES标志位  2=MES响应完成，4=流程结束
+      Offline : Int;   // 是否在线
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK

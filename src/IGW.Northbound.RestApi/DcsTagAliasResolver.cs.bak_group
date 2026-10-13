@@ -1,0 +1,108 @@
+using IGW.Abstractions;
+
+namespace IGW.Northbound.RestApi;
+
+internal sealed class DcsTagAliasResolver
+{
+    private sealed record DeviceAlias(string LogicalPrefix, string PhysicalPrefix);
+
+    private readonly Func<string, string?> _resolvePhysical;
+    private readonly List<DeviceAlias> _aliases = [];
+    private readonly HashSet<string> _ambiguous = new(StringComparer.OrdinalIgnoreCase);
+
+    public DcsTagAliasResolver(IgwProject project, IEnumerable<string> physicalTagIds)
+        : this(project, BuildPhysicalResolver(physicalTagIds))
+    {
+    }
+
+    public DcsTagAliasResolver(IgwProject project, Func<string, bool> tagExists)
+        : this(project, tagId => tagExists(tagId) ? tagId : null)
+    {
+    }
+
+    private DcsTagAliasResolver(IgwProject project, Func<string, string?> resolvePhysical)
+    {
+        _resolvePhysical = resolvePhysical;
+        var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (ChannelDef channel in project.Channels ?? [])
+        {
+            foreach (DeviceDef device in channel.Devices ?? [])
+            {
+                if (device.Settings?.TryGetValue(DcsTagMetadata.LogicalDevice, out string? logical) != true
+                    || string.IsNullOrWhiteSpace(logical)) continue;
+                string logicalPrefix = $"通用.{logical.Trim()}.";
+                string physicalPrefix = $"{channel.Name}.{device.Name}.";
+                if (_ambiguous.Contains(logicalPrefix)) continue;
+                if (mappings.TryGetValue(logicalPrefix, out string? existing)
+                    && !existing.Equals(physicalPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    mappings.Remove(logicalPrefix);
+                    _ambiguous.Add(logicalPrefix);
+                }
+                else
+                {
+                    mappings[logicalPrefix] = physicalPrefix;
+                }
+            }
+        }
+        _aliases.AddRange(mappings.Select(item => new DeviceAlias(item.Key, item.Value)));
+        _aliases.Sort((left, right) => right.LogicalPrefix.Length.CompareTo(left.LogicalPrefix.Length));
+    }
+
+    public bool TryResolve(string? requested, out string physical, out string error)
+    {
+        string key = requested?.Trim() ?? "";
+        if (key.Length == 0)
+        {
+            physical = "";
+            error = "点位名称不能为空";
+            return false;
+        }
+
+        string? native = _resolvePhysical(key);
+        if (native is not null)
+        {
+            physical = native;
+            error = "";
+            return true;
+        }
+
+        string? ambiguousPrefix = _ambiguous.FirstOrDefault(prefix =>
+            key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        if (ambiguousPrefix is not null)
+        {
+            physical = "";
+            error = $"DCS 点位别名不唯一:{key}";
+            return false;
+        }
+
+        DeviceAlias? alias = _aliases.FirstOrDefault(candidate =>
+            key.StartsWith(candidate.LogicalPrefix, StringComparison.OrdinalIgnoreCase));
+        if (alias is not null)
+        {
+            string candidate = alias.PhysicalPrefix + key[alias.LogicalPrefix.Length..];
+            string? resolved = _resolvePhysical(candidate);
+            if (resolved is not null)
+            {
+                physical = resolved;
+                error = "";
+                return true;
+            }
+        }
+
+        physical = "";
+        error = $"点位不存在:{key}";
+        return false;
+    }
+
+    private static Func<string, string?> BuildPhysicalResolver(IEnumerable<string> physicalTagIds)
+    {
+        var physical = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string raw in physicalTagIds)
+        {
+            string tagId = raw?.Trim() ?? "";
+            if (tagId.Length > 0) physical.TryAdd(tagId, tagId);
+        }
+        return tagId => physical.TryGetValue(tagId, out string? canonical) ? canonical : null;
+    }
+}

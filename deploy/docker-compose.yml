@@ -1,0 +1,27 @@
+# IGW 工业网关 · Docker 部署(deploy\ 套件自带,打包时镜像 tag 会被替换为当次版本号)
+# 启动:docker compose up -d --build(由 deploy.sh 一键完成)
+services:
+  igw:
+    image: igw:1.6.45
+    build:
+      context: .
+      args:
+        # 可用环境变量 IGW_BASE_IMAGE 换镜像源(deploy.sh 预拉取也读它)
+        BASE_IMAGE: ${IGW_BASE_IMAGE:-mcr.microsoft.com/dotnet/runtime-deps:10.0-noble}
+    container_name: igw
+    hostname: igw          # 固定主机名:OPC UA 自签证书绑定主机名,变了证书就失效
+    restart: unless-stopped
+    environment:
+      - IGW_DATA_DIR=/var/lib/igw
+      - TZ=Asia/Shanghai
+    ports:
+      - "48020:48020"   # Web 管理端 + REST API(http://IP:48020/)
+      - "4840:4840"     # OPC UA Server(opc.tcp://IP:4840)
+    volumes:
+      # 数据独立存放于 zip 内容之外:默认 ../igwdata(与 igw-docker 平级);
+      # 可用环境变量 IGW_HOST_DATA 指到任意绝对路径(如 /var/lib/igwdata)
+      # 工程/授权/日志/SQLite/OPC UA 证书 —— 升级重装程序目录都不受影响
+      - ${IGW_HOST_DATA:-../igwdata}/data:/var/lib/igw
+      # 机器码持久化:授权码绑定 /etc/machine-id,固定住重建容器机器码才不变
+      # (deploy.sh 首次部署自动生成,勿删)
+      - ${IGW_HOST_DATA:-../igwdata}/machine-id:/etc/machine-id

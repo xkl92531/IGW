@@ -1,0 +1,23 @@
+DATA_BLOCK "DB2100_电芯OCV_DataDB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      Request : Bool;   // 请求（1:K值请求 2:出站请求）
+      PLCFlag : Int;   // PLC标志位   1=等待MES响应，3=电气操作完成
+      MESFlag : Int;   // MES标志位  2=MES响应完成，4=流程结束
+      CellData : Array[0..10] of Struct
+         DMCCode : String[50];   // 条码
+         KValue : Real;   // K值
+         Voltage : Real;   // 电压值
+         ErrorMessage : String[100];   // MES返回NG原因(中文描述)
+         IsNG : Int;   // 电芯状态(0:初始 1:OK 2:NG 3:清线)
+         Errorinfo : String[100];   // 异常信息
+      END_STRUCT;
+      Temperature : Real;   // 环境温度
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK

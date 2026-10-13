@@ -1,0 +1,20 @@
+# IGW 工业网关 · Docker 部署
+# 启动:docker compose up -d --build
+services:
+  igw:
+    image: igw:1.6.45
+    build: .
+    container_name: igw
+    hostname: igw          # 固定主机名:OPC UA 自签证书绑定主机名,变了证书就失效
+    restart: unless-stopped
+    environment:
+      - IGW_DATA_DIR=/var/lib/igw
+      - TZ=Asia/Shanghai
+    ports:
+      - "48020:48020"   # Web 管理端 + REST API(http://IP:48020/)
+      - "4840:4840"     # OPC UA Server(opc.tcp://IP:4840)
+    volumes:
+      # 工程/授权/日志/SQLite/OPC UA 证书 —— 升级重建容器不丢
+      - ./data:/var/lib/igw
+      # 机器码持久化:授权码绑定 /etc/machine-id,固定住重建容器机器码才不变
+      - ./machine-id:/etc/machine-id

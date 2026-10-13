@@ -1,0 +1,59 @@
+{
+  "partialSubscription": {
+    "requestedTags": 2,
+    "acceptedTags": 1,
+    "unchangedDemand": true,
+    "simulatedClockElapsedMs": 4200,
+    "createsBeforeStop": 3,
+    "disposalsBeforeStop": 2
+  },
+  "batchCompletion": {
+    "goodSamplePublished": true,
+    "goodRequestCompletedDuringRetry": false,
+    "laterWriteDispatchedDuringRetry": false,
+    "goodResult": "Good",
+    "mismatchResult": "BadNotVerified",
+    "laterResult": "Good",
+    "writeCounts": {
+      "Line.Plc.Mismatch": 11,
+      "Line.Plc.Later": 1,
+      "Line.Plc.Good": 1
+    }
+  },
+  "sharedReadPriority": {
+    "operations": [
+      "Line.Plc.CompletedWrite",
+      "Line.Plc.Busy1",
+      "Line.Plc.Busy2",
+      "Line.Plc.Background1",
+      "Line.Plc.Background0",
+      "Line.Plc.Background2",
+      "Line.Plc.Background3",
+      "Line.Plc.Background4",
+      "Line.Plc.Background5",
+      "Line.Plc.WriteReadback"
+    ],
+    "backgroundReadsDispatchedBeforeReadback": 6
+  },
+  "persistentReadTimeout": {
+    "requestedTags": 512,
+    "physicalReadAttempts": 521,
+    "initialRequestSizes": [
+      512,
+      256,
+      128,
+      64,
+      32,
+      16,
+      8,
+      4,
+      2,
+      1,
+      1,
+      1
+    ],
+    "badSamples": 512,
+    "theoreticalSecondsIfEveryAttemptTakesConfiguredTenSecondTimeout": 5210,
+    "note": "Timeouts are injected instantly; this is an attempt count, not measured PLC duration."
+  }
+}

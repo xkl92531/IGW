@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>PlcSimulator</RootNamespace>
+    <AssemblyName>PlcSimulator</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <S7PlusNativeManifest>$(MSBuildProjectDirectory)\..\native\igw-s7plus-server\Cargo.toml</S7PlusNativeManifest>
+    <S7PlusNativeDll>$(MSBuildProjectDirectory)\..\native\igw-s7plus-server\target\release\igw_plcsim_s7plus.dll</S7PlusNativeDll>
+    <CargoExecutable Condition="Exists('$(USERPROFILE)\.cargo\bin\cargo.exe')">$(USERPROFILE)\.cargo\bin\cargo.exe</CargoExecutable>
+    <CargoExecutable Condition="'$(CargoExecutable)' == ''">cargo.exe</CargoExecutable>
+  </PropertyGroup>
+
+  <Target Name="BuildS7PlusNativeTransport"
+          BeforeTargets="PrepareForBuild"
+          Condition="'$(SkipS7PlusNativeBuild)' != 'true'">
+    <Exec Command="&quot;$(CargoExecutable)&quot; build --release --manifest-path &quot;$(S7PlusNativeManifest)&quot;" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration" Version="1.5.378.145" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.378.145" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="HslCommunication">
+      <HintPath>libs\HslCommunication.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(SkipS7PlusNativeBuild)' != 'true'">
+    <Content Include="$(S7PlusNativeDll)" Link="igw_plcsim_s7plus.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

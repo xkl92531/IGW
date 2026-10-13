@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\IGW.Abstractions\IGW.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IoTClient" Version="1.0.48" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('..\..\native\igw-s7plus\target\release\igw_s7plus.dll')">
+    <None Include="..\..\native\igw-s7plus\target\release\igw_s7plus.dll"
+          Link="igw_s7plus.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Linux:交叉编译产物 libigw_s7plus.so(cargo zigbuild,target=x86_64-unknown-linux-gnu)。
+       .NET 在 Linux 上按 libigw_s7plus.so 探测 DllImport("igw_s7plus");Windows 安装包多出的这个文件不会被加载。 -->
+  <ItemGroup Condition="Exists('..\..\native\igw-s7plus\target\x86_64-unknown-linux-gnu\release\libigw_s7plus.so')">
+    <None Include="..\..\native\igw-s7plus\target\x86_64-unknown-linux-gnu\release\libigw_s7plus.so"
+          Link="libigw_s7plus.so"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IGW.Tests" />
+  </ItemGroup>
+
+</Project>

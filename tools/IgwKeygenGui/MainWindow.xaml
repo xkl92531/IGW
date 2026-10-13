@@ -1,0 +1,153 @@
+<Window x:Class="IgwKeygenGui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="IGW 发码工具(厂商内部)" Width="760" Height="820" MinWidth="680" MinHeight="600"
+        FontFamily="Microsoft YaHei UI" FontSize="13" WindowStartupLocation="CenterScreen" Background="#F3F5F8">
+    <Window.Resources>
+        <Style TargetType="Label"><Setter Property="Padding" Value="0,0,0,2"/><Setter Property="Foreground" Value="#333"/></Style>
+        <Style TargetType="TextBox"><Setter Property="Padding" Value="6,4"/><Setter Property="BorderBrush" Value="#C7CDD6"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+        <Style x:Key="Hint" TargetType="TextBlock"><Setter Property="Foreground" Value="#8A94A6"/><Setter Property="FontSize" Value="11.5"/><Setter Property="Margin" Value="0,2,0,0"/></Style>
+        <Style x:Key="Primary" TargetType="Button">
+            <Setter Property="Background" Value="#1A5FB4"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/><Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="14,7"/><Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- 私钥状态横幅(任何标签页都能看到) -->
+        <Border DockPanel.Dock="Top" x:Name="KeyBar" Background="#EEF4FF" BorderBrush="#D5E0F0" BorderThickness="0,0,0,1" Padding="14,10">
+            <DockPanel>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="KeyDot" Width="12" Height="12" Fill="Gray" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="KeyStatus" Text="正在查找私钥…" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock x:Name="KeyPathText" Text="" Style="{StaticResource Hint}" Margin="20,3,0,0" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <StatusBar DockPanel.Dock="Bottom" Background="#E7EBF1">
+            <TextBlock x:Name="StatusText" Text="就绪" Foreground="#555"/>
+        </StatusBar>
+
+        <TabControl Margin="12" Background="Transparent" BorderThickness="0">
+            <!-- ========== 签发 ========== -->
+            <TabItem Header="  签发授权码  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="6,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" Content="客户名 *" VerticalAlignment="Center" Margin="0,0,12,10" Width="88" HorizontalContentAlignment="Right"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="CustomerBox" Margin="0,0,0,10"/>
+
+                            <Label Grid.Row="1" Grid.Column="0" Content="机器码 *" VerticalAlignment="Center" Margin="0,0,12,2" Width="88" HorizontalContentAlignment="Right"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="填本机(测试用)" Click="FillLocal_Click" Padding="8,4" Margin="8,0,0,0"/>
+                                    <TextBox x:Name="MachineBox" FontFamily="Consolas" FontSize="14"/>
+                                </DockPanel>
+                                <TextBlock Style="{StaticResource Hint}" Text="客户在「授权/激活」窗口读到的 16 位机器码(可带 - 分隔),如 3E8A-87DE-14E7-FDBF。"/>
+                            </StackPanel>
+
+                            <Label Grid.Row="2" Grid.Column="0" Content="有效期 *" VerticalAlignment="Top" Margin="0,8,12,0" Width="88" HorizontalContentAlignment="Right"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,6,0,10">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="ByDays" Content="按天数" IsChecked="True" GroupName="Exp" VerticalAlignment="Center" Checked="ExpMode_Changed"/>
+                                    <TextBox x:Name="DaysBox" Text="365" Width="90" Margin="8,0,4,0"/>
+                                    <TextBlock Text="天" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="ByDate" Content="按到期日" GroupName="Exp" VerticalAlignment="Center" Margin="24,0,0,0" Checked="ExpMode_Changed"/>
+                                    <DatePicker x:Name="ExpDate" Width="150" Margin="8,0,0,0" IsEnabled="False"/>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Hint}" Text="按天数=从今天起算 N 天;按到期日=到当天 23:59:59 失效。永久用大天数(如 3650=10 年)。"/>
+                            </StackPanel>
+
+                            <Label Grid.Row="3" Grid.Column="0" Content="宽限天数" VerticalAlignment="Center" Margin="0,0,12,2" Width="88" HorizontalContentAlignment="Right"/>
+                            <StackPanel Grid.Row="3" Grid.Column="1">
+                                <TextBox x:Name="GraceBox" Text="7" Width="90" HorizontalAlignment="Left"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="到期后仍可运行的缓冲天数(带强告警),过后停止采集。默认 7 天。"/>
+                            </StackPanel>
+
+                            <Label Grid.Row="4" Grid.Column="0" Content="备注" VerticalAlignment="Center" Margin="0,10,12,10" Width="88" HorizontalContentAlignment="Right"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="NoteBox" Margin="0,10,0,10"/>
+
+                            <Label Grid.Row="5" Grid.Column="0" Content="可用驱动 *" VerticalAlignment="Top" Margin="0,6,12,0" Width="88" HorizontalContentAlignment="Right"/>
+                            <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,4,0,10">
+                                <WrapPanel x:Name="DriversPanel"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="明确写入授权码；后续新增驱动不会自动获得授权。"/>
+                            </StackPanel>
+
+                            <Label Grid.Row="6" Grid.Column="0" Content="功能模块" VerticalAlignment="Top" Margin="0,6,12,0" Width="88" HorizontalContentAlignment="Right"/>
+                            <WrapPanel Grid.Row="6" Grid.Column="1" x:Name="FeaturesPanel" Margin="0,4,0,10"/>
+
+                            <Button Grid.Row="7" Grid.Column="1" Content="生成授权码" Click="Issue_Click" Style="{StaticResource Primary}" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                        </Grid>
+
+                        <Border Margin="0,16,0,0" Background="White" BorderBrush="#DDE3EC" BorderThickness="1" CornerRadius="4" Padding="12">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock Text="授权码(发给现场粘贴激活)" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="复制" Click="CopyCode_Click" Padding="12,4"/>
+                                        <Button Content="保存为文件..." Click="SaveCode_Click" Padding="12,4" Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <TextBox x:Name="CodeBox" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Height="96"
+                                         FontFamily="Consolas" FontSize="12" Background="#FBFCFE" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto"/>
+                                <TextBlock x:Name="IssueSummary" Style="{StaticResource Hint}" Text="" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ========== 验证 ========== -->
+            <TabItem Header="  验证授权码  ">
+                <StackPanel Margin="6,12">
+                    <TextBlock Text="粘贴一段授权码,点验证(用软件内嵌公钥校验签名并解析内容)" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBox x:Name="VerifyInput" AcceptsReturn="True" TextWrapping="Wrap" Height="110" FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto"/>
+                    <Button Content="验证" Click="Verify_Click" Style="{StaticResource Primary}" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                    <Border x:Name="VerifyCard" Margin="0,14,0,0" Background="White" BorderBrush="#DDE3EC" BorderThickness="1" CornerRadius="4" Padding="14" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock x:Name="VerifyResult" FontSize="15" FontWeight="Bold"/>
+                            <TextBlock x:Name="VerifyDetail" Margin="0,6,0,0" TextWrapping="Wrap" Foreground="#444"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+            <!-- ========== 发码台账 ========== -->
+            <TabItem Header="  发码台账  ">
+                <DockPanel Margin="6,12">
+                    <DockPanel DockPanel.Dock="Top">
+                        <Button DockPanel.Dock="Right" Content="打开台账文件" Click="OpenLedger_Click" Padding="10,4" Margin="8,0,0,0"/>
+                        <Button DockPanel.Dock="Right" Content="复制选中授权码" Click="CopyLedgerCode_Click" Padding="10,4" Margin="8,0,0,0"/>
+                        <Button DockPanel.Dock="Right" Content="刷新" Click="RefreshLedger_Click" Padding="10,4" Margin="8,0,0,0"/>
+                        <TextBox x:Name="LedgerFilter" TextChanged="LedgerFilter_Changed" ToolTip="按客户名 / 机器码 / 备注筛选"/>
+                    </DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}"
+                               Text="每次签发自动记一行(与私钥同目录 issued-codes.jsonl,只留在本机)。客户丢码/补发:选中该行点「复制选中授权码」直接重发,无需重新签。"/>
+                    <DataGrid x:Name="LedgerGrid" Margin="0,8,0,0" AutoGenerateColumns="False" IsReadOnly="True"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
+                              SelectionMode="Single" RowHeight="26" FontSize="12.5" Background="White">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="签发时间" Binding="{Binding Ts, StringFormat=yyyy-MM-dd HH:mm}" Width="1.2*"/>
+                            <DataGridTextColumn Header="客户" Binding="{Binding Customer}" Width="1.4*"/>
+                            <DataGridTextColumn Header="机器码" Binding="{Binding Machine}" Width="1.4*" FontFamily="Consolas"/>
+                            <DataGridTextColumn Header="到期" Binding="{Binding Expiry}" Width="0.9*"/>
+                            <DataGridTextColumn Header="宽限" Binding="{Binding Grace}" Width="0.5*"/>
+                            <DataGridTextColumn Header="备注" Binding="{Binding Note}" Width="1.2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

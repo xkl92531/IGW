@@ -1,0 +1,102 @@
+# ---- 构建输出 ----
+bin/
+obj/
+publish/
+dist/
+[Dd]ebug/
+[Rr]elease/
+
+# ---- IDE / 用户本地 ----
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---- Codex / 本地代理工作目录（绝不提交）----
+/.codex/
+/.codex-patches/
+/.codex-tches/
+/.pnpm-store/
+/.superpowers/
+/.worktrees/
+
+# ---- 本地辅助工具源码/产物（厂商本机保留）----
+# 工具源码随完整源码迁移保留，仅忽略下面的缓存和敏感文件。
+!/tools/IGW.OpcUaProbe/
+!/tools/IGW.OpcUaProbe/**
+!/tools/linux/
+!/tools/linux/**
+/tools/IGW.OpcUaProbe/bin/
+/tools/IGW.OpcUaProbe/obj/
+
+# ---- 私有规格设计（仅本机保留）----
+# openspec 为设计源文件，随源码保留。
+
+# ---- 密钥 / 本地配置(绝不提交)----
+secrets.local.json
+*.local.json
+appsettings.*.local.json
+
+# ---- 授权发码私钥/台账(厂商保管,绝不入库/进安装包)----
+private.key
+tools/IgwKeygen/private.key
+tools/IgwKeygenGui/private.key
+issued-codes*.jsonl
+*.pem
+license.key
+.igwlic
+igw.masterkey
+
+# ---- 运行数据 / 日志 ----
+*.log
+*.db
+*.db-wal
+*.db-shm
+
+# ---- 打包产物(安装包 exe,勿入库)----
+installer/out/
+installer/Output/
+artifacts/
+*.exe
+
+# ---- Web UI(Vue)----
+node_modules/
+src/IGW.WebUi/dist/
+src/IGW.Runtime/wwwroot/
+
+# opsx 技能上传包(由 tools/sync-opsx-skill.ps1 自动重打,不入库)
+tools/openspec-workflow-skill.zip
+
+# superpowers 技能上传包(由 tools/sync-superpowers-zips.ps1 自动重打,不入库)
+tools/superpowers-zips/
+tools/superpowers-workflow-skill.zip
+deploy/out/stage/
+# 原先是整个 native/ 忽略，库源码靠 add -f 进库；
+# 新增的 .rs 会被静默丢掉(订阅模块就差点漏提)。现在只忽略构建产物。
+native/*
+!native/igw-s7plus
+native/igw-s7plus/*
+!native/igw-s7plus/src
+!native/igw-s7plus/tests
+!native/igw-s7plus/Cargo.toml
+!native/igw-s7plus/Cargo.lock
+!native/igw-s7plus/README.md
+!native/igw-s7plus/abi-exports.txt
+rundata/
+deploy/out/
+
+# ---- 完整源码仓库的额外生成缓存 ----
+**/target/
+**/TestResults/
+**/coverage/
+**/__pycache__/
+**/.pytest_cache/
+**/.vite/
+*.pyc
+*.tsbuildinfo
+*.pdb
+/tools/*.dll
+/tools/*.zip
+
